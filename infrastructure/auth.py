@@ -23,8 +23,6 @@ class TokenData(BaseModel):
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def fake_hash_password(password: str):
-    return "fakehashed" + password
 
 def authenticate_admin_user(username: str, password: str):
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:

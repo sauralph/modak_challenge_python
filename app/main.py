@@ -1,7 +1,7 @@
-from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from datetime import timedelta
 from application.services import NotificationServiceApp
 from domain.exceptions import RateLimitExceededException
 from app.dependencies import get_notification_service_app
@@ -12,9 +12,13 @@ class NotificationRequest(BaseModel):
     recipient: str
     message: str
 
-app = FastAPI()
+app = FastAPI(
+    title="Notification API Challenge",
+    description="API for sending notifications with rate limiting and JWT authentication",
+    version="1.0.0"
+)
 
-@app.post("/token", response_model=Token)
+@app.post("/token", response_model=Token, summary="Login for access token", description="Login using the admin credentials to obtain a JWT access token.")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_admin_user(form_data.username, form_data.password)
     if not user:
@@ -29,7 +33,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/send-notification/")
+@app.post("/send-notification/", summary="Send a notification", description="Send a notification to a specified recipient. Requires JWT authentication.")
 def send_notification(
     request: NotificationRequest, 
     service: NotificationServiceApp = Depends(get_notification_service_app), 
