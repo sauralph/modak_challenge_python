@@ -1,6 +1,8 @@
 import os
 import redis
 from datetime import datetime, timedelta
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 class RateLimitExceededException(Exception):
     pass
@@ -49,22 +51,26 @@ class NotificationService:
     def _send_notification(self, recipient, message):
         print(f"Sending '{message}' to {recipient}")
 
-# Example usage
-if __name__ == "__main__":
-    service = NotificationService(
-        redis_host=os.getenv('REDIS_HOST', 'localhost'),
-        redis_port=int(os.getenv('REDIS_PORT', 6379))
-    )
+class NotificationRequest(BaseModel):
+    notification_type: str
+    recipient: str
+    message: str
 
-    try:
-        service.send("status", "user1@example.com", "Status update 1")
-        service.send("status", "user1@example.com", "Status update 2")
-        service.send("status", "user1@example.com", "Status update 3")  # This should raise an exception
-    except RateLimitExceededException as e:
-        print(e)
+# Initialize FastAPI app
+app = FastAPI()
 
+# Initialize NotificationService
+service = NotificationService(
+    redis_host=os.getenv('REDIS_HOST', 'localhost'),
+    redis_port=int(os.getenv('REDIS_PORT', 6379))
+)
+
+@app.post("/send-notification/")
+def send_notification(request: NotificationRequest):
     try:
-        service.send("news", "user2@example.com", "Daily news")
-        service.send("news", "user2@example.com", "Another news")  # This should raise an exception
+        service.send(request.notification_type, request.recipient, request.message)
+        return {"status": "success", "message": f"Notification sent to {request.recipient}"}
     except RateLimitExceededException as e:
-        print(e)
+        raise HTTPException(status_code=429, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY . .
 
-# Specify the command to run the application
-CMD ["python", "notification_service.py"]
+# Specify the command to run the FastAPI application using Uvicorn
+CMD ["uvicorn", "notification_service:app", "--host", "0.0.0.0", "--port", "8000"]

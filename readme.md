@@ -24,24 +24,13 @@ docker-compose build
 docker-compose up
 ```
 
-## Data Model
+### Sending a notification
 
-There are two types of data models: Notification and RateLimit.
+The service must be running to send a notification. The following command sends a notification to the service.
 
-```mermaid
-erDiagram
-    Notification {
-        string id
-        string recipient
-        string type
-        string content
-        date createdAt
-    }
-    RateLimit {
-        string id
-        string type
-        int limit
-        int interval
-    }
-    Notification}|--||RateLimit : has
+```sh
+curl -X POST "http://localhost:8000/send-notification/" -H "Content-Type: application/json" -d '{"notification_type": "status", "recipient": "user1@example.com", "message": "Status update 1"}'
 ```
+
+## Rate limiting
+The rate limiting is implemented using a sliding window algorithm
