@@ -10,6 +10,20 @@ Some sample notification types and rate limit rules, e.g.:
 - Marketing: not more than 3 per hour for each recipient
 Etc. these are just samples, the system might have several rate limit rules!
 
+## Running the application
+### Building the application with Docker
+
+```sh
+docker-compose build
+
+```
+
+### Running the application with Docker
+
+```sh
+docker-compose up
+```
+
 ## Data Model
 
 There are two types of data models: Notification and RateLimit.
