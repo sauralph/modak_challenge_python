@@ -21,7 +21,13 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token",auto_error=False)
+
+def no_auth_dependency():
+    if not (os.getenv('NO_AUTHORIZATION', '0')=='0') :
+        return {"username": "admin"}
+    else:
+        return None
 
 
 def authenticate_admin_user(username: str, password: str):
@@ -39,7 +45,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: Optional[str] = Depends(oauth2_scheme), no_auth: Optional[dict] = Depends(no_auth_dependency)):
+    if no_auth:
+        return no_auth
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

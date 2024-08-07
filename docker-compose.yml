@@ -15,5 +15,9 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - NO_AUTHORIZATION=${NO_AUTHORIZATION}
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_USER=${ADMIN_USER}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     ports:
       - "8000:8000"

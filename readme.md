@@ -21,7 +21,7 @@ docker-compose build
 ### Running the application with Docker
 
 ```sh
-docker-compose up
+NO_AUTHORIZATION=1 docker-compose up
 ```
 
 ### Sending a notification
@@ -31,6 +31,31 @@ The service must be running to send a notification. The following command sends 
 ```sh
 curl -X POST "http://localhost:8000/send-notification/" -H "Content-Type: application/json" -d '{"notification_type": "status", "recipient": "user1@example.com", "message": "Status update 1"}'
 ```
+
+## Using authorization
+To use the authorization, you need to set the environment variables `SECRET_KEY`, `ADMIN_USER`, and `ADMIN_PASSWORD`. The following command sends a notification to the service with authorization.
+
+```sh
+# Launch service with authorization
+ADMIN_PASSWORD=xxx docker-compose up -d 
+curl -X 'POST' \
+  'http://localhost:8000/token' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password&username=admin&password=xxx&scope=&client_id=string&client_secret=string'
+
+curl -X 'POST' \
+  'http://localhost:8000/send-notification/' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer <the_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "notification_type": "status",
+  "recipient": "user1@example.com",
+  "message": "Status update 1"
+}'
+```
+
 
 ## Endpoints
 
