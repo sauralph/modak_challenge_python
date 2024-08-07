@@ -24,7 +24,7 @@ class NotificationService:
 
         # Send notification
         self._send_notification(recipient, message)
-        self.repository.log_notification(recipient, notification_type, now)
+        self.repository.log_notification(recipient, notification_type, now, period)
 
     def _send_notification(self, recipient, message):
         print(f"Sending '{message}' to {recipient}")

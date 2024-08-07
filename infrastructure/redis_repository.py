@@ -14,16 +14,16 @@ class RedisRepository:
         cutoff = now - timedelta(seconds=period)
         return self.redis_client.zcard(key)
 
-    def log_notification(self, recipient, notification_type, timestamp):
+    def log_notification(self, recipient, notification_type, timestamp, ttl):
         key = f"{recipient}:{notification_type}"
         self.redis_client.zadd(key, {timestamp.timestamp(): timestamp.timestamp()})
-        self.redis_client.expire(key, 86400)
+        self.redis_client.expire(key, ttl)
         
     def clear_all_notifications(self):
         keys = self.redis_client.keys('*:*')
         if keys:
             self.redis_client.delete(*keys)
-            
+
     def get_all_usage(self):
         keys = self.redis_client.keys('*:*')
         usage = {}

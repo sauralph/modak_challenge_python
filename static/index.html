@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rate Limits</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Login</h1>
@@ -18,6 +32,22 @@
     <ul id="rate-limits-list">
         <li>Loading...</li>
     </ul>
+
+    <h1>Usage Data</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Type</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody id="usage-table-body">
+            <tr>
+                <td colspan="3">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -45,6 +75,8 @@
                 .then(data => {
                     localStorage.setItem('access_token', data.access_token);
                     loadRateLimits();
+                    loadUsageData();
+                    setInterval(loadUsageData, 10000);  // Update every 10 seconds
                 })
                 .catch(error => {
                     alert(error.message);
@@ -84,6 +116,50 @@
                         rateLimitsList.innerHTML = '<li>Unauthorized: Please log in.</li>';
                     } else {
                         rateLimitsList.innerHTML = '<li>Error fetching rate limits</li>';
+                    }
+                });
+            }
+
+            function loadUsageData() {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    document.getElementById('usage-table-body').innerHTML = '<tr><td colspan="3">Please log in to see usage data.</td></tr>';
+                    return;
+                }
+
+                fetch('http://localhost:8000/usage/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error fetching usage data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const usageTableBody = document.getElementById('usage-table-body');
+                    usageTableBody.innerHTML = '';
+                    for (const [key, count] of Object.entries(data)) {
+                        const [user, type] = key.split(':');
+                        usageTableBody.innerHTML += `
+                            <tr>
+                                <td>${user}</td>
+                                <td>${type}</td>
+                                <td>${count}</td>
+                            </tr>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    const usageTableBody = document.getElementById('usage-table-body');
+                    usageTableBody.innerHTML = '';
+                    if (error.message.includes('Unauthorized')) {
+                        usageTableBody.innerHTML = '<tr><td colspan="3">Unauthorized: Please log in.</td></tr>';
+                    } else {
+                        usageTableBody.innerHTML = '<tr><td colspan="3">Error fetching usage data</td></tr>';
                     }
                 });
             }
