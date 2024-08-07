@@ -7,3 +7,6 @@ class NotificationServiceApp:
 
     def clear_all_notifications(self):
         self.notification_service.clear_all_notifications()
+
+    def get_all_usage(self):
+        return self.notification_service.get_all_usage()

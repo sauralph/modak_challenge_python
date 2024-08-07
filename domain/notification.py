@@ -32,3 +32,6 @@ class NotificationService:
     def clear_all_notifications(self):
         self.repository.clear_all_notifications()
 
+    def get_all_usage(self):
+        return self.repository.get_all_usage()
+

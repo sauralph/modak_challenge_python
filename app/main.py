@@ -129,3 +129,14 @@ def get_rate_limits(current_user: dict = Depends(get_current_active_user)):
         "marketing_count": rate_limits_config.marketing_count,
         "marketing_period": rate_limits_config.marketing_period
     }
+
+@app.get("/usage/",
+         summary="Get all users notification usage",
+         description="Fetch the notification usage for all users. Requires JWT authentication.",
+         responses={
+             200: {"description": "All users usage fetched successfully"},
+             401: {"description": "Unauthorized", "model": ErrorResponse}
+         })
+def get_all_users_usage(service: NotificationServiceApp = Depends(get_notification_service_app), current_user: dict = Depends(get_current_active_user)):
+    usage = service.get_all_usage()
+    return usage

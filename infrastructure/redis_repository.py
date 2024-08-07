@@ -23,3 +23,10 @@ class RedisRepository:
         keys = self.redis_client.keys('*:*')
         if keys:
             self.redis_client.delete(*keys)
+            
+    def get_all_usage(self):
+        keys = self.redis_client.keys('*:*')
+        usage = {}
+        for key in keys:
+            usage[key] = self.redis_client.zcard(key)
+        return usage
