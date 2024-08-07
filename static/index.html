@@ -11,7 +11,7 @@
             padding: 20px;
             background-color: #f4f4f9;
         }
-        h1 {
+        h1, h2 {
             color: #333;
         }
         form {
@@ -23,7 +23,9 @@
             font-weight: bold;
         }
         input[type="text"],
-        input[type="password"] {
+        input[type="password"],
+        select,
+        textarea {
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
@@ -101,6 +103,21 @@
         </tbody>
     </table>
 
+    <h2>Send Notification</h2>
+    <form id="send-notification-form">
+        <label for="notification-type">Notification Type:</label>
+        <select id="notification-type" name="notification-type" required>
+            <option value="status">Status</option>
+            <option value="news">News</option>
+            <option value="marketing">Marketing</option>
+        </select>
+        <label for="recipient">Recipient:</label>
+        <input type="text" id="recipient" name="recipient" required>
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="4" required></textarea>
+        <button type="submit">Send Notification</button>
+    </form>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('login-form').addEventListener('submit', function(event) {
@@ -128,10 +145,49 @@
                     localStorage.setItem('access_token', data.access_token);
                     loadRateLimits();
                     loadUsageData();
-                    setInterval(loadUsageData, 10000);  // Update every 10 seconds
                 })
                 .catch(error => {
                     alert(error.message);
+                });
+            });
+
+            document.getElementById('send-notification-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    alert('Please log in to send notifications.');
+                    return;
+                }
+
+                const notificationType = document.getElementById('notification-type').value;
+                const recipient = document.getElementById('recipient').value;
+                const message = document.getElementById('message').value;
+
+                fetch('http://localhost:8000/send-notification/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        notification_type: notificationType,
+                        recipient: recipient,
+                        message: message
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error sending notification: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Notification sent successfully');
+                    loadUsageData();
+                })
+                .catch(error => {
+                    alert(error.message);
+                    loadUsageData();
                 });
             });
 
@@ -217,6 +273,9 @@
             }
 
             loadRateLimits();
+            loadUsageData();
+            setInterval(loadUsageData, 10000);  // Update every 10 seconds
+
         });
     </script>
 </body>

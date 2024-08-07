@@ -3,6 +3,8 @@ class NotificationServiceApp:
         self.notification_service = notification_service
 
     def send_notification(self, notification_type, recipient, message):
+        # strip leading and trailing whitespaces
+        recipient = recipient.strip()
         self.notification_service.send(notification_type, recipient, message)
 
     def clear_all_notifications(self):
