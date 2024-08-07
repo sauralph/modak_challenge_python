@@ -21,6 +21,10 @@ class MockNotificationServiceApp:
         if notification_type == "rate_limited":
             raise RateLimitExceededException("Rate limit exceeded")
         return
+    
+    def clear_all_notifications(self):
+        return
+
 
 # Mock dependency injection
 def override_get_notification_service_app():
@@ -59,3 +63,11 @@ def test_rate_limited_notification(test_client):
     response = test_client.post("/send-notification/", json=payload, headers=headers)
     assert response.status_code == 429
     assert response.json() == {"detail": "Rate limit exceeded"}
+
+def test_clear_all_notifications(test_client):
+    response = test_client.post("/token", data={"username": "admin", "password": "password"})
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = test_client.delete("/notifications/clear", headers=headers)
+    assert response.status_code == 200
+    assert response.json() == {"status": "success", "message": "All notifications cleared successfully"}

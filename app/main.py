@@ -101,3 +101,14 @@ def update_rate_limits(
     if rate_limit_update.marketing_period is not None:
         rate_limits_config.marketing_period = rate_limit_update.marketing_period
     return {"status": "success", "message": "Rate limits updated successfully"}
+
+@app.delete("/notifications/clear", 
+            summary="Clear all notifications",
+            description="Clear all notifications. Requires JWT authentication.",
+            responses={
+                200: {"description": "All notifications cleared successfully", "model": NotificationResponse},
+                401: {"description": "Unauthorized", "model": ErrorResponse}
+            })
+def clear_all_notifications(service: NotificationServiceApp = Depends(get_notification_service_app), current_user: dict = Depends(get_current_active_user)):
+    service.clear_all_notifications()
+    return {"status": "success", "message": "All notifications cleared successfully"}
