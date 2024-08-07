@@ -71,6 +71,11 @@ def send_notification(
     service: NotificationServiceApp = Depends(get_notification_service_app),
     current_user: dict = Depends(get_current_active_user)
 ):
+    # External validation for the request
+    recipient = request.recipient.strip()
+    if not recipient or "@" not in recipient:
+        raise HTTPException(status_code=400, detail="Invalid recipient email") 
+    
     try:
         service.send_notification(request.notification_type, request.recipient, request.message)
         return {"status": "success", "message": f"Notification sent to {request.recipient}"}
