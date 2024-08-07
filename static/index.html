@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limits</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="login-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    <h1>Current Rate Limits</h1>
+    <ul id="rate-limits-list">
+        <li>Loading...</li>
+    </ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('login-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                fetch('http://localhost:8000/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'username': username,
+                        'password': password
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Login failed: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    localStorage.setItem('access_token', data.access_token);
+                    loadRateLimits();
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+            });
+
+            function loadRateLimits() {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    document.getElementById('rate-limits-list').innerHTML = '<li>Please log in to see rate limits.</li>';
+                    return;
+                }
+
+                fetch('http://localhost:8000/rate-limits/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error fetching rate limits');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const rateLimitsList = document.getElementById('rate-limits-list');
+                    rateLimitsList.innerHTML = '';
+                    rateLimitsList.innerHTML += `<li>Status: ${data.status_count} per ${data.status_period} seconds</li>`;
+                    rateLimitsList.innerHTML += `<li>News: ${data.news_count} per ${data.news_period} seconds</li>`;
+                    rateLimitsList.innerHTML += `<li>Marketing: ${data.marketing_count} per ${data.marketing_period} seconds</li>`;
+                })
+                .catch(error => {
+                    const rateLimitsList = document.getElementById('rate-limits-list');
+                    rateLimitsList.innerHTML = '';
+                    if (error.message.includes('Unauthorized')) {
+                        rateLimitsList.innerHTML = '<li>Unauthorized: Please log in.</li>';
+                    } else {
+                        rateLimitsList.innerHTML = '<li>Error fetching rate limits</li>';
+                    }
+                });
+            }
+
+            loadRateLimits();
+        });
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ from application.services import NotificationServiceApp
 from domain.exceptions import RateLimitExceededException
 from app.dependencies import get_notification_service_app
 from app.config import rate_limits_config
+from fastapi.staticfiles import StaticFiles
 from infrastructure.auth import authenticate_admin_user, create_access_token, get_current_active_user, Token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 class NotificationRequest(BaseModel):
@@ -34,6 +35,8 @@ app = FastAPI(
     description="API for sending notifications with rate limiting and JWT authentication",
     version="1.0.0"
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/token", response_model=Token, summary="Login for access token", description="Login using the admin credentials to obtain a JWT access token.")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -112,3 +115,17 @@ def update_rate_limits(
 def clear_all_notifications(service: NotificationServiceApp = Depends(get_notification_service_app), current_user: dict = Depends(get_current_active_user)):
     service.clear_all_notifications()
     return {"status": "success", "message": "All notifications cleared successfully"}
+
+@app.get("/rate-limits/", summary="Get rate limits", description="Fetch the current rate limits.", responses={
+    200: {"description": "Rate limits fetched successfully", "model": RateLimitUpdateRequest},
+    401: {"description": "Unauthorized", "model": ErrorResponse}
+})
+def get_rate_limits(current_user: dict = Depends(get_current_active_user)):
+    return {
+        "status_count": rate_limits_config.status_count,
+        "status_period": rate_limits_config.status_period,
+        "news_count": rate_limits_config.news_count,
+        "news_period": rate_limits_config.news_period,
+        "marketing_count": rate_limits_config.marketing_count,
+        "marketing_period": rate_limits_config.marketing_period
+    }
