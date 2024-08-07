@@ -10,24 +10,24 @@ from app.config import rate_limits_config
 from infrastructure.auth import authenticate_admin_user, create_access_token, get_current_active_user, Token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 class NotificationRequest(BaseModel):
-    notification_type: str = Field(..., example="status")
-    recipient: str = Field(..., example="user1@example.com")
-    message: str = Field(..., example="Status update 1")
+    notification_type: str = Field(..., json_schema_extra={"example": "status"})
+    recipient: str = Field(..., json_schema_extra={"example": "user1@example.com"})
+    message: str = Field(..., json_schema_extra={"example": "Status update 1"})
 
 class NotificationResponse(BaseModel):
-    status: str = Field(..., example="success")
-    message: str = Field(..., example="Notification sent to user1@example.com")
+    status: str = Field(..., json_schema_extra={"example": "success"})
+    message: str = Field(..., json_schema_extra={"example": "Notification sent to user1@example.com"})
 
 class ErrorResponse(BaseModel):
-    detail: str = Field(..., example="Rate limit exceeded for status to user1@example.com")
+    detail: str = Field(..., json_schema_extra={"example": "Rate limit exceeded for status to user1@example.com"})
 
 class RateLimitUpdateRequest(BaseModel):
-    status_count: Optional[int] = Field(None, example=2)
-    status_period: Optional[int] = Field(None, example=60)
-    news_count: Optional[int] = Field(None, example=1)
-    news_period: Optional[int] = Field(None, example=86400)
-    marketing_count: Optional[int] = Field(None, example=3)
-    marketing_period: Optional[int] = Field(None, example=3600)
+    status_count: Optional[int] = Field(None, json_schema_extra={"example": 2})
+    status_period: Optional[int] = Field(None, json_schema_extra={"example": 60})
+    news_count: Optional[int] = Field(None, json_schema_extra={"example": 1})
+    news_period: Optional[int] = Field(None, json_schema_extra={"example": 86400})
+    marketing_count: Optional[int] = Field(None, json_schema_extra={"example": 3})
+    marketing_period: Optional[int] = Field(None, json_schema_extra={"example": 3600})
 
 app = FastAPI(
     title="Notification API",
@@ -60,11 +60,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
               401: {"description": "Unauthorized", "model": ErrorResponse}
           })
 def send_notification(
-    request: NotificationRequest = Body(..., example={
+    request: NotificationRequest = Body(..., json_schema_extra={"example":{
         "notification_type": "status",
         "recipient": "user1@example.com",
         "message": "Status update 1"
-    }),
+    }}),
     service: NotificationServiceApp = Depends(get_notification_service_app),
     current_user: dict = Depends(get_current_active_user)
 ):

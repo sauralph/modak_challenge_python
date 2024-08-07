@@ -21,3 +21,12 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     ports:
       - "8000:8000"
+  test:
+    build:
+      context: .
+    command: python -m pytest tests/test_main.py && python -m pytest tests/test_e2e.py
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - notification_service
