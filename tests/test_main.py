@@ -68,6 +68,6 @@ def test_clear_all_notifications(test_client):
     response = test_client.post("/token", data={"username": "admin", "password": "password"})
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    response = test_client.delete("/notifications/clear", headers=headers)
+    response = test_client.delete("/notifications", headers=headers)
     assert response.status_code == 200
     assert response.json() == {"status": "success", "message": "All notifications cleared successfully"}

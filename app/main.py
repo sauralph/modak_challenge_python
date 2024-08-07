@@ -102,7 +102,7 @@ def update_rate_limits(
         rate_limits_config.marketing_period = rate_limit_update.marketing_period
     return {"status": "success", "message": "Rate limits updated successfully"}
 
-@app.delete("/notifications/clear", 
+@app.delete("/notifications", 
             summary="Clear all notifications",
             description="Clear all notifications. Requires JWT authentication.",
             responses={
