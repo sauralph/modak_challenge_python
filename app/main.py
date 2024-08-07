@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordRequestForm
@@ -5,6 +6,7 @@ from pydantic import BaseModel, Field
 from application.services import NotificationServiceApp
 from domain.exceptions import RateLimitExceededException
 from app.dependencies import get_notification_service_app
+from app.config import rate_limits_config
 from infrastructure.auth import authenticate_admin_user, create_access_token, get_current_active_user, Token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 class NotificationRequest(BaseModel):
@@ -18,6 +20,14 @@ class NotificationResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str = Field(..., example="Rate limit exceeded for status to user1@example.com")
+
+class RateLimitUpdateRequest(BaseModel):
+    status_count: Optional[int] = Field(None, example=2)
+    status_period: Optional[int] = Field(None, example=60)
+    news_count: Optional[int] = Field(None, example=1)
+    news_period: Optional[int] = Field(None, example=86400)
+    marketing_count: Optional[int] = Field(None, example=3)
+    marketing_period: Optional[int] = Field(None, example=3600)
 
 app = FastAPI(
     title="Notification API",
@@ -66,16 +76,28 @@ def send_notification(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.delete("/clean-notifications/",
-            summary="Clean all notifications",
-            description="Clean up all notifications from the system. Requires JWT authentication.",
-            responses={
-                200: {"description": "All notifications cleaned successfully", "model": NotificationResponse},
-                401: {"description": "Unauthorized", "model": ErrorResponse}
-            })
-def clean_notifications(
-    service: NotificationServiceApp = Depends(get_notification_service_app),
+@app.put("/rate-limits/", 
+         summary="Update rate limits", 
+         description="Update the rate limits for notifications. Requires JWT authentication.",
+         responses={
+             200: {"description": "Rate limits updated successfully", "model": NotificationResponse},
+             400: {"description": "Invalid request", "model": ErrorResponse},
+             401: {"description": "Unauthorized", "model": ErrorResponse}
+         })
+def update_rate_limits(
+    rate_limit_update: RateLimitUpdateRequest,
     current_user: dict = Depends(get_current_active_user)
 ):
-    service.notification_service.clean_all_notifications()
-    return {"status": "success", "message": "All notifications cleaned successfully"}
+    if rate_limit_update.status_count is not None:
+        rate_limits_config.status_count = rate_limit_update.status_count
+    if rate_limit_update.status_period is not None:
+        rate_limits_config.status_period = rate_limit_update.status_period
+    if rate_limit_update.news_count is not None:
+        rate_limits_config.news_count = rate_limit_update.news_count
+    if rate_limit_update.news_period is not None:
+        rate_limits_config.news_period = rate_limit_update.news_period
+    if rate_limit_update.marketing_count is not None:
+        rate_limits_config.marketing_count = rate_limit_update.marketing_count
+    if rate_limit_update.marketing_period is not None:
+        rate_limits_config.marketing_period = rate_limit_update.marketing_period
+    return {"status": "success", "message": "Rate limits updated successfully"}
