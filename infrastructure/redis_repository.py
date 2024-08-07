@@ -18,3 +18,8 @@ class RedisRepository:
         key = f"{recipient}:{notification_type}"
         self.redis_client.zadd(key, {timestamp.timestamp(): timestamp.timestamp()})
         self.redis_client.expire(key, 86400)
+        
+    def clean_all_notifications(self):
+        keys = self.redis_client.keys('*:*')
+        if keys:
+            self.redis_client.delete(*keys)

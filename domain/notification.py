@@ -29,3 +29,6 @@ class NotificationService:
     def _send_notification(self, recipient, message):
         print(f"Sending '{message}' to {recipient}")
 
+    def clean_all_notifications(self):
+        self.repository.clean_all_notifications()
+
