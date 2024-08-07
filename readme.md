@@ -32,5 +32,22 @@ The service must be running to send a notification. The following command sends 
 curl -X POST "http://localhost:8000/send-notification/" -H "Content-Type: application/json" -d '{"notification_type": "status", "recipient": "user1@example.com", "message": "Status update 1"}'
 ```
 
-## Rate limiting
-The rate limiting is implemented using a sliding window algorithm
+## Endpoints
+
+Endpoint documentation can be found at `http://localhost:8000/docs` or `http://localhost:8000/redoc`
+
+## Available Environment Variables
+### Redis Configuration
+- `REDIS_HOST`: The host of the Redis server. Default: `localhost`
+- `REDIS_PORT`: The port of the Redis server. Default: `6379`
+### Authorization
+- `SECRET_KEY`: The secret key for JWT token. Default: `your_secret_key`
+- `ADMIN_USER`: The admin username. Default: `admin`
+- `ADMIN_PASSWORD`: The admin password. Default: `password`
+### Rate Limiting
+- `STATUS_COUNT`: Maximum number of status notifications that can be sent in a period. Default: `2` 
+- `STATUS_PERIOD`: The period in seconds for the status notifications in seconds. Default: `60`
+- `NEWS_COUNT`: Maximum number of news notifications that can be sent in a period. Default: `1`
+- `NEWS_PERIOD`: Maximum number of news notifications that can be sent in a period in seconds. Default: `86400`
+- `MARKETING_COUNT`: Maximum number of marketing notifications that can be sent in a period. Default: `3`
+- `MARKETING_PERIOD`: Maximum number of marketing notifications that can be sent in a period in seconds. Default: `3600` 
