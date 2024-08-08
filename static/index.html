@@ -70,24 +70,27 @@
         tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Login</h1>
-    <form id="login-form">
+    <form id="login-form" class="hidden">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
         <button type="submit">Login</button>
     </form>
+    <button id="logout-button" class="">Logout</button>
 
     <h1>Current Rate Limits</h1>
     <ul id="rate-limits-list">
         <li>Loading...</li>
     </ul>
     <button id="clear-notifications-button">Clear All Notifications</button>
-
 
     <h1>Usage Data</h1>
     <table>
@@ -120,10 +123,15 @@
         <button type="submit">Send Notification</button>
     </form>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('login-form').addEventListener('submit', function(event) {
+            const loginForm = document.getElementById('login-form');
+            const logoutButton = document.getElementById('logout-button');
+            const sendNotificationForm = document.getElementById('send-notification-form');
+            const clearNotificationsButton = document.getElementById('clear-notifications-button');
+            const tokenKey = 'access_token';
+
+            loginForm.addEventListener('submit', function(event) {
                 event.preventDefault();
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
@@ -145,22 +153,26 @@
                     return response.json();
                 })
                 .then(data => {
-                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem(tokenKey, data.access_token);
                     loadRateLimits();
                     loadUsageData();
+                    loginForm.classList.add('hidden');
+                    logoutButton.classList.remove('hidden');
                 })
                 .catch(error => {
                     alert(error.message);
                 });
             });
 
-            document.getElementById('send-notification-form').addEventListener('submit', function(event) {
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem(tokenKey);
+                loginForm.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+            });
+
+            sendNotificationForm.addEventListener('submit', function(event) {
                 event.preventDefault();
-                const token = localStorage.getItem('access_token');
-                if (!token) {
-                    alert('Please log in to send notifications.');
-                    return;
-                }
+                const token = localStorage.getItem(tokenKey);
 
                 const notificationType = document.getElementById('notification-type').value;
                 const recipient = document.getElementById('recipient').value;
@@ -194,12 +206,12 @@
                 });
             });
 
-            document.getElementById('clear-notifications-button').addEventListener('click', function() {
-                const token = localStorage.getItem('access_token');
-                if (!token) {
-                    alert('Please log in to clear notifications.');
-                    return;
-                }
+            clearNotificationsButton.addEventListener('click', function() {
+                const token = localStorage.getItem(tokenKey);
+                // if (!token) {
+                //     alert('Please log in to clear notifications.');
+                //     return;
+                // }
 
                 fetch('http://localhost:8000/notifications', {
                     method: 'DELETE',
@@ -224,11 +236,7 @@
             });
 
             function loadRateLimits() {
-                const token = localStorage.getItem('access_token');
-                if (!token) {
-                    document.getElementById('rate-limits-list').innerHTML = '<li>Please log in to see rate limits.</li>';
-                    return;
-                }
+                const token = localStorage.getItem(tokenKey);
 
                 fetch('http://localhost:8000/rate-limits/', {
                     method: 'GET',
@@ -261,11 +269,7 @@
             }
 
             function loadUsageData() {
-                const token = localStorage.getItem('access_token');
-                if (!token) {
-                    document.getElementById('usage-table-body').innerHTML = '<tr><td colspan="3">Please log in to see usage data.</td></tr>';
-                    return;
-                }
+                const token = localStorage.getItem(tokenKey);
 
                 fetch('http://localhost:8000/usage/', {
                     method: 'GET',
@@ -307,7 +311,6 @@
             loadRateLimits();
             loadUsageData();
             setInterval(loadUsageData, 10000);  // Update every 10 seconds
-
         });
     </script>
 </body>
