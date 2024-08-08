@@ -208,10 +208,6 @@
 
             clearNotificationsButton.addEventListener('click', function() {
                 const token = localStorage.getItem(tokenKey);
-                // if (!token) {
-                //     alert('Please log in to clear notifications.');
-                //     return;
-                // }
 
                 fetch('http://localhost:8000/notifications', {
                     method: 'DELETE',
